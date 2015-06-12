@@ -75,7 +75,7 @@ def load_prices(exchange_id, symbols, data_vendor=DATA_VENDOR):
         for symbol in symbols:
             print("ExchangeId {0} Symbol {1}".format(exchange_id, symbol))
             cur.execute("select id from symbol where exchange_id=%s AND ticker=%s",
-                                  (exchange_id, symbol))
+                        (exchange_id, symbol))
             sym_id = cur.fetchone()[0]
 
             prices = get_daily_historic_data_yahoo(symbol)
@@ -233,6 +233,14 @@ def create_exchange(conn):
 
 
 def load_data(exchanges=None, symbols=None, skip_data_load=False):
+    """
+    Loads the price data for given list of exchanges and symbols.
+
+    :param exchanges:
+    :param symbols:
+    :param skip_data_load:
+    :return:
+    """
     print('Schema created - loading data')
     if skip_data_load:
         print('Skipping Data Load')
@@ -252,4 +260,39 @@ def load_data(exchanges=None, symbols=None, skip_data_load=False):
     print('Symbols loaded for exchange')
 
 
-create_from_scratch(['NASDAQ'])
+def clean_exchange(exchange_name):
+    pass
+
+def resume(exchange_id):
+    """
+    This function resumes the loading of prices for a given exchange.
+    It finds the list of symbols not loaded in daily prices and then
+    loads the prices for them.
+
+    :param exchange_id:
+    :return:
+    """
+    tickers_to_process = []
+    load_prices(exchange_id, tickers_to_process)
+
+    with get_connection().cursor() as cur:
+        cur.execute("""
+                select s1.ticker
+                    from symbol s1
+                    where s1.exchange_id=%s
+                and s1.id not in (
+                    select sym.id
+                    from symbol sym, daily_price dp
+                    where sym.exchange_id=%s
+                    and sym.id=dp.symbol_id
+                    group by sym.id
+                )
+        """, (exchange_id, exchange_id))
+        result = cur.fetchall()
+        unprocessed_tickers = [x[0] for x in result]
+
+        print("Processing {0} unprocessed symbols {1}".format(len(unprocessed_tickers), unprocessed_tickers))
+        load_prices(exchange_id, unprocessed_tickers)
+
+
+resume(2)
