@@ -1,6 +1,6 @@
 __author__ = 'Amit'
 
-import psycopg2 as PG
+import Pricing_Database as db
 import datetime
 import urllib2
 
@@ -37,7 +37,7 @@ def get_symbols(exchange):
 
 
 def load_symbols_by_exchange(exchange):
-    conn = get_connection()
+    conn = db.get_connection()
     with conn.cursor() as cur:
         abbrev = exchange[1]
         exchange_id = exchange[0]
@@ -60,18 +60,18 @@ def get_exchanges(conn):
 
 
 def get_exchange(exchange_abbrev):
-    with get_connection().cursor() as cur:
+    with db.get_connection().cursor() as cur:
         cur.execute("select id, abbrev from exchange where abbrev=%s", (exchange_abbrev,))
         return cur.fetchone()
 
 
 def load_prices(exchange_id, symbols, data_vendor=DATA_VENDOR):
-    with get_connection().cursor() as cur1:
+    with db.get_connection().cursor() as cur1:
         cur1.execute("select id from data_vendor where vendor_name=%s", (data_vendor,))
         vendor_id = cur1.fetchone()[0]
         print("Vendor Id {0}".format(vendor_id))
 
-    with get_connection().cursor() as cur:
+    with db.get_connection().cursor() as cur:
         for symbol in symbols:
             print("ExchangeId {0} Symbol {1}".format(exchange_id, symbol))
             cur.execute("select id from symbol where exchange_id=%s AND ticker=%s",
@@ -126,7 +126,7 @@ def get_daily_historic_data_yahoo(ticker,
 
 
 def create_from_scratch(exchanges=None, skip_data_load=False):
-    conn = get_connection()
+    conn = db.get_connection()
 
     # Create Tables.
     create_exchange(conn)
@@ -198,16 +198,6 @@ def create_daily_price(conn):
     print('Table Daily_price created.')
 
 
-def get_connection():
-    conn = PG.connect(DATABASE_URL)
-
-    # Test Connection
-    if conn is None:
-        raise RuntimeError('Connection could not established')
-
-    print('Connection Established')
-    return conn
-
 
 def create_exchange(conn):
     with conn.cursor() as cur:
@@ -248,7 +238,7 @@ def load_data(exchanges=None, symbols=None, skip_data_load=False):
 
     if exchanges is None:
         print('Loading all Exchanges')
-        exchanges = get_exchanges(get_connection())
+        exchanges = get_exchanges(db.get_connection())
 
     for exchange_abbrev in exchanges:
         exchange = get_exchange(exchange_abbrev)
@@ -275,7 +265,7 @@ def resume(exchange_id):
     tickers_to_process = []
     load_prices(exchange_id, tickers_to_process)
 
-    with get_connection().cursor() as cur:
+    with db.get_connection().cursor() as cur:
         cur.execute("""
                 select s1.ticker
                     from symbol s1
