@@ -1,16 +1,11 @@
 __author__ = 'Amit'
 
-import Pricing_Database as db
+import init.Pricing_Database as db
 import datetime
 import urllib2
 
 # Move it to script parameters.
-DATABASE_NAME = "EquityPrices2"
-DATABASE_USER = "postgres"
-DATABASE_PASSWORD = "dias"
 EXCHANGE_DATA_DIR = "../exchanges-data/"
-
-DATABASE_URL = "dbname={0} user={1} password={2}".format(DATABASE_NAME, DATABASE_USER, DATABASE_PASSWORD)
 
 DATA_VENDOR = "Yahoo Finance"
 
@@ -119,8 +114,8 @@ def get_daily_historic_data_yahoo(ticker,
             p = y.strip().split(',')
             prices.append((datetime.datetime.strptime(p[0], '%Y-%m-%d'),
                            p[1], p[2], p[3], p[4], p[5], p[6]))
-    except Exception, e:
-        print "Could not download Yahoo data: %s" % e
+    except Exception as e:
+        print("Could not download Yahoo data: {0}".format(e))
         return []
     return prices
 
@@ -241,7 +236,7 @@ def load_data(exchanges=None, symbols=None, skip_data_load=False):
         exchanges = get_exchanges(db.get_connection())
 
     for exchange_abbrev in exchanges:
-        exchange = get_exchange(exchange_abbrev)
+        exchange = get_exchange(exchange_abbrev[1])
         if symbols is None:
             symbols_descriptions = load_symbols_by_exchange(exchange)
             symbols = [x for x, _ in symbols_descriptions]
@@ -284,5 +279,4 @@ def resume(exchange_id):
         print("Processing {0} unprocessed symbols {1}".format(len(unprocessed_tickers), unprocessed_tickers))
         load_prices(exchange_id, unprocessed_tickers)
 
-
-resume(2)
+resume(1)

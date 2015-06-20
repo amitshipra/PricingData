@@ -7,7 +7,7 @@ import psycopg2.extras
 DATABASE_NAME = "EquityPrices2"
 DATABASE_USER = "postgres"
 DATABASE_PASSWORD = "dias"
-EXCHANGE_DATA_DIR = "../exchanges-data/"
+
 
 DATABASE_URL = "dbname={0} user={1} password={2}".format(DATABASE_NAME, DATABASE_USER, DATABASE_PASSWORD)
 

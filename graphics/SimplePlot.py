@@ -20,13 +20,15 @@ def display_chart(symbol_id):
         prices = cur.fetchall()
         data = list()
         for price in prices:
-            # print('Date [{0}]  OPEN [{1}]  HIGH [{2}]  LOW [{3}] CLOSE [{4}]'.format(price['price_date'], price['open'],
-            #                                                                          price['high'], price['low'],
-            #                                                                          price['close']))
-            data.append((price['price_date'], price['open']))
+            print('Date [{0}]  OPEN [{1}]  HIGH [{2}]  LOW [{3}] CLOSE [{4}]'.format(price['price_date'], price['open'],
+                                                                                     price['high'], price['low'],
+                                                                                     price['close']))
+            data.append((price['open'], price['close'], price['high'], price['low']))
 
         print('Data loaded. Plotting...')
+        plot.xlabel('Date')
+        plot.ylabel('Price')
         plot.plot(data)
-        plot.show()
+        plot.savefig('myfilename.png')
 
-display_chart(1234)
+display_chart(456)
